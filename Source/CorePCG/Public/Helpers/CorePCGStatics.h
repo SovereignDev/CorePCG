@@ -13,24 +13,24 @@
  */
 namespace PCG
 {
-	inline bool HasAnyInputs(const FPCGContext* Context, const FName PinName = PCGPinConstants::DefaultInputLabel)
+	COREPCG_API inline bool HasAnyInputs(const FPCGContext* Context, const FName PinName = PCGPinConstants::DefaultInputLabel)
 	{
 		return Context->InputData.GetInputsByPin(PinName).IsValidIndex(0);
 	}
-	inline TArray<FPCGTaggedData> GetInputs(const FPCGContext* Context, const FName PinName = PCGPinConstants::DefaultInputLabel)
+	COREPCG_API inline TArray<FPCGTaggedData> GetInputs(const FPCGContext* Context, const FName PinName = PCGPinConstants::DefaultInputLabel)
 	{
 		return Context->InputData.GetInputsByPin(PinName);
 	}
-	inline TArray<FPCGTaggedData>& GetOutputs(FPCGContext* Context)
+	COREPCG_API inline TArray<FPCGTaggedData>& GetOutputs(FPCGContext* Context)
 	{
 		return Context->OutputData.TaggedData;
 	}
 	
 	/* Gets the Meta Data from a PCG Data by checking all child classes that declare a meta data object */
-	class UPCGMetadata* GetMetaData(UPCGData* Data);
+	COREPCG_API class UPCGMetadata* GetMetaData(UPCGData* Data);
 
 	/** Takes in an Array of Tagged Data and Sets all meta data variables to the specified value */
-	inline void SetMetaData(TArray<FPCGTaggedData>& InData, class UPCGMetadata* MetaData)
+	COREPCG_API inline void SetMetaData(TArray<FPCGTaggedData>& InData, class UPCGMetadata* MetaData)
 	{
 		for (FPCGTaggedData& Data : InData)
 		{
@@ -50,7 +50,7 @@ namespace PCG
 		}
 	}
 
-	inline const UPCGPointData* AsPointData(FPCGContext* Context, const UPCGData* Data)
+	COREPCG_API inline const UPCGPointData* AsPointData(FPCGContext* Context, const UPCGData* Data)
 	{
 		const UPCGPointData* PointData = Cast<UPCGPointData>(Data);
 		if(!PointData)
@@ -71,7 +71,7 @@ namespace PCG
 	/**
 	 *	Synchronously Process all the Input Points. This version is Constant. Any Changes to the Points will not be reflected in the Output.
 	 */
-	inline void ConstantProcessPointsSynchronous(FPCGContext* Context, const TArray<FPCGTaggedData>& Inputs, const TFunction<void(const FPCGPoint&)>& Lambda)
+	COREPCG_API inline void ConstantProcessPointsSynchronous(FPCGContext* Context, const TArray<FPCGTaggedData>& Inputs, const TFunction<void(const FPCGPoint&)>& Lambda)
 	{
 		for (const FPCGTaggedData& Input : Inputs)
 		{
@@ -86,7 +86,7 @@ namespace PCG
 		}
 	}
 
-	inline void ProcessPointsSynchronous(FPCGContext* Context, const TArray<FPCGTaggedData>& Inputs, TArray<FPCGTaggedData>& Output, const TFunction<bool(FPCGPoint&)>& Lambda)
+	COREPCG_API inline void ProcessPointsSynchronous(FPCGContext* Context, const TArray<FPCGTaggedData>& Inputs, TArray<FPCGTaggedData>& Output, const TFunction<bool(FPCGPoint&)>& Lambda)
 	{
 		Output.Reserve(Inputs.Num());
 	
@@ -110,5 +110,27 @@ namespace PCG
 
 			NewData->SetPoints(NewPoints);
 		}
+	}
+
+	COREPCG_API inline bool IsDataValidOnAnyThread(const class UPCGData* Data)
+	{
+		if(!IsValid(Data)) return false;
+		if(!TWeakObjectPtr<const UPCGData>(Data).IsValid()) return false;
+		if(!Data->GetFName().IsValid()) return false;
+		if(Data->GetFName().IsNone()) return false;
+		if(Data->HasAnyFlags(RF_BeginDestroyed | RF_FinishDestroyed)) return false;
+		
+		return true;
+	}
+	
+	COREPCG_API inline bool IsDataValidOnAnyThread(const TObjectPtr<const UPCGData>& Data)
+	{
+		if(!Data) return false;
+		if(!TWeakObjectPtr<const UPCGData>(Data).IsValid()) return false;
+		if(!Data.GetFName().IsValid()) return false;
+		if(Data.GetFName().IsNone()) return false;
+		if(Data->HasAnyFlags(RF_BeginDestroyed | RF_FinishDestroyed)) return false;
+
+		return true;
 	}
 }

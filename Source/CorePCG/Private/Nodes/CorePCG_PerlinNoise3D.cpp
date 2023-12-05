@@ -20,7 +20,7 @@ bool FPCGPerlinNoise3DElement::ExecuteInternal(FPCGContext* Context) const
 	
 	int32 Seed = Settings->GetSeed(Context->SourceComponent.Get());
 
-	POINT_LOOP(&Scale, &Frequency, &Power, &Seed)
+	ProcessPoints(Context, Inputs, Outputs,[&Scale, &Frequency, &Power, &Seed](const FPCGPoint& InPoint, FPCGPoint& OutPoint)->bool
 	{
 		OutPoint = InPoint;
 

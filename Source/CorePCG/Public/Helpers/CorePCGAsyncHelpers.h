@@ -16,8 +16,20 @@ public:
 	void Begin() { bHasAsyncExecuted = bIsPaused = true; }
 	void Cancel() { bCancelAsync = true; bIsPaused = false; }
 
+	bool HasAsyncExecutionBegan() const { return bHasAsyncExecuted; }
+	bool IsCanceled() const { return bCancelAsync; }
+
+	void Reset() { bHasAsyncExecuted = false; }
+	
+private:
 	bool bCancelAsync = false;
 	bool bHasAsyncExecuted = false;
+
+public:
+	static bool IsValid(const FCorePCGAsyncContext* Context)
+	{
+		return Context && !Context->IsCanceled();
+	}
 };
 
 class COREPCG_API FCorePCGAsyncElementBase : public FSimplePCGElement

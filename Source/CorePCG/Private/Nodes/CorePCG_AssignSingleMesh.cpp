@@ -11,7 +11,6 @@
 #include "Helpers/PCGHelpers.h"
 #include "Metadata/PCGMetadataAccessor.h"
 
-
 UPCGAssignSingleMeshSettings::UPCGAssignSingleMeshSettings()
 {
 	bUseSeed = false;

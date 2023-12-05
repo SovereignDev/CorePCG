@@ -4,9 +4,7 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
-#include "Data/PCGPointData.h"
 #include "Data/PCGSpatialData.h"
-#include "Helpers/PCGAsync.h"
 
 FPCGContext* FPCGAsyncTestElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {

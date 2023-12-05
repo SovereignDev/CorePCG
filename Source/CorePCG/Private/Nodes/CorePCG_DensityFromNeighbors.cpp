@@ -145,7 +145,8 @@ bool FPCGDensityFromNeighborsElement::AsyncExecuteInternal(FCorePCGAsyncContext*
 			if(bLogTime) UE_LOG(LogPCG, Warning, TEXT("Normalization took %f ms to execute"), (FPlatformTime::Seconds() - StartTime) * 1000);
 
 			// If Invalid then this was cancelled on the Game Thread
-			if(!IsValid(FirstPointData) || !Context || FirstPointData->HasAnyFlags(RF_BeginDestroyed | RF_FinishDestroyed)) return false;
+			if(!PCG::IsDataValidOnAnyThread(FirstPointData)) return false;
+			if(!Context) return false;
 
 			UPCGPointData* OutData = NewObject<UPCGPointData>();
 			OutData->InitializeFromData(FirstPointData);
@@ -304,9 +305,4 @@ bool FPCGDensityFromNeighborsElement::AsyncExecuteInternal(FCorePCGAsyncContext*
 	});
 	
 	return true;
-}
-
-FText UPCGDensityFromNeighborsSettings::GetNodeTooltipText() const
-{
-	return NSLOCTEXT("PCGDensityFromNeighborsSettings", "NodeTooltip", "Calculates the Density of each point based on the normalized number of neighbors within a radius. \n This is perfectly accurate version of the 'DistanceToNeighbors' node but is also much more expensive operation. To avoid performance issues, this node is fully multithreaded and will should not affect performance of the game thread.");
 }

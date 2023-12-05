@@ -62,8 +62,3 @@ bool FPCGSampleSplineEndsElement::ExecuteInternal(FPCGContext* Context) const
 
 	return true;
 }
-
-FText UPCGSampleSplineEndsSettings::GetNodeTooltipText() const
-{
-	return NSLOCTEXT("PCGSampleSplineEndsSettings", "NodeTooltip", "Creates a point for the Start and End of a Spline");
-}

@@ -7,6 +7,7 @@
 #include "PCGPoint.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/CorePCGRandomHelpers.h"
+#include "Helpers/CorePCGStatics.h"
 #include "Helpers/PCGHelpers.h"
 #include "Metadata/PCGMetadataAccessor.h"
 
@@ -72,7 +73,7 @@ bool FPCGAssignMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context) 
 
 	const UPCGAssignMeshSettings* Settings = Context->GetInputSettings<UPCGAssignMeshSettings>();
 	check(Settings);
-
+	
 	TArray<FPCGTaggedData> Inputs = Context->InputData.GetInputsByPin(PCGPinConstants::DefaultInputLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 	
@@ -90,7 +91,7 @@ bool FPCGAssignMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context) 
 
 	bool bSetBounds = Settings->bSetBounds;
 	float BoundsScale = Settings->BoundsScale;
-
+	
 	int32 Seed = Context->GetSeed();
 
 	UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Inputs[0].Data);
@@ -102,28 +103,26 @@ bool FPCGAssignMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context) 
 	TArray<TSoftObjectPtr<UStaticMesh>> MeshesToLoad;
 	
 	if(!Metadata->HasAttribute(FName("Mesh"))) Metadata->CreateStringAttribute(FName("Mesh"), "", false, true);
-
-	ProcessPoints(Context, Inputs, Outputs, [Context, &Meshes, &MeshesToLoad, &bSetBounds, &BoundsScale, &Metadata, Seed](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+	
+	PCG::ProcessPointsSynchronous(Context, Inputs, Outputs, [Context, &Meshes, &MeshesToLoad, &bSetBounds, &BoundsScale, &Metadata, Seed](FPCGPoint& OutPoint)
 	{
 		// Check if this Node was Cancelled.
 		if(!Context) return false;
 		
-		OutPoint = InPoint;
-
-		const FRandomStream RandomStream = PCGHelpers::ComputeSeed(Seed, InPoint.Seed);
-
+		const FRandomStream RandomStream = PCGHelpers::ComputeSeed(Seed, OutPoint.Seed);
+	
 		const FWeightedMeshToPoint ChosenMesh = GET_FROM_WEIGHT_STRUCT_WITH_STREAM(FWeightedMeshToPoint, Meshes, RandomStream);
-
-		MeshesToLoad.AddUnique(ChosenMesh.Mesh);
 		
+		MeshesToLoad.AddUnique(ChosenMesh.Mesh);
+			
 		UPCGMetadataAccessorHelpers::SetStringAttribute(OutPoint, Metadata, FName("Mesh"), ChosenMesh.Mesh.ToSoftObjectPath().GetAssetPathString());
-
+		
 		if(bSetBounds)
 		{
 			OutPoint.BoundsMin = ChosenMesh.Bounds.Min * BoundsScale;
 			OutPoint.BoundsMax = ChosenMesh.Bounds.Max * BoundsScale;
 		}
-
+	
 		return true;
 	});
 

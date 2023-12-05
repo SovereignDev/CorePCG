@@ -36,7 +36,7 @@ public:
 		return NSLOCTEXT("PCGSampleSplineEndsSettings", "NodeTitle", "Sample Spline Ends");
 	}
 
-	virtual FText GetNodeTooltipText() const override;
+	virtual FText GetNodeTooltipText() const override { return NSLOCTEXT("PCGSampleSplineEndsSettings", "NodeTooltip", "Creates a point for the Start and End of a Spline"); }
 
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
 #endif

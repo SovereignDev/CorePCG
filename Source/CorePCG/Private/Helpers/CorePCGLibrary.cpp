@@ -179,3 +179,80 @@ void UCorePCGLibrary::MergeInputData(FPCGContext* Context)
 		}
 	}
 }
+
+UPCGPointData* UCorePCGLibrary::MergeData(FPCGContext* Context, const TArray<UPCGSpatialData*>& Sources)
+{
+	if(!ensure(Context)) return nullptr;
+	
+	const bool bMergeMetadata = true;
+	
+	if (Sources.IsEmpty()) return nullptr;
+
+	UPCGPointData* TargetPointData = nullptr;
+
+	// Prepare data & metadata
+	// Done in two passes for futureproofing - expecting changes in the metadata attribute creation vs. usage in points
+	for (const UPCGSpatialData* Source : Sources)
+	{
+		const UPCGPointData* SourcePointData = Source->ToPointDataWithContext(*Context);
+
+		// If Source is not native point data, try to convert it from spatial data
+		if (!SourcePointData)
+		{
+			UE_LOG(LogPCG, Error, TEXT("Unsupported data type in merge in Core PCG Node"))
+			continue;
+		}
+		
+		if (!TargetPointData)
+		{
+			TargetPointData = NewObject<UPCGPointData>();
+			TargetPointData->InitializeFromData(SourcePointData, nullptr, bMergeMetadata);
+		}
+		else
+		{
+			if (bMergeMetadata)
+			{
+				TargetPointData->Metadata->AddAttributes(SourcePointData->Metadata);
+			}
+		}
+	}
+
+	// No valid input types
+	if (!TargetPointData) return nullptr;
+
+	TArray<FPCGPoint>& TargetPoints = TargetPointData->GetMutablePoints();
+	
+	for(int32 SourceIndex = 0; SourceIndex < Sources.Num(); ++SourceIndex)
+	{
+		const UPCGPointData* SourcePointData = Cast<const UPCGPointData>(Sources[SourceIndex]);
+
+		if (!SourcePointData)
+		{
+			continue;
+		}
+
+		int32 PointOffset = TargetPoints.Num();
+		TargetPoints.Append(SourcePointData->GetPoints());
+
+		if ((!bMergeMetadata || SourceIndex != 0) && !SourcePointData->GetPoints().IsEmpty())
+		{
+			TArrayView<FPCGPoint> TargetPointsSubset = MakeArrayView(&TargetPoints[PointOffset], SourcePointData->GetPoints().Num());
+			for (FPCGPoint& Point : TargetPointsSubset)
+			{
+				Point.MetadataEntry = PCGInvalidEntryKey;
+			}
+
+			if (bMergeMetadata && TargetPointData->Metadata && SourcePointData->Metadata && SourcePointData->Metadata->GetAttributeCount() > 0)
+			{
+				TargetPointData->Metadata->SetPointAttributes(MakeArrayView(SourcePointData->GetPoints()), SourcePointData->Metadata, TargetPointsSubset);
+			}
+		}
+	}
+
+	return TargetPointData;
+}
+
+UPCGPointData* UCorePCGLibrary::MergeData(FPCGContext* Context, const TArray<UPCGPointData*>& Sources)
+{
+	return MergeData(Context, TArray<UPCGSpatialData*>(Sources));
+}

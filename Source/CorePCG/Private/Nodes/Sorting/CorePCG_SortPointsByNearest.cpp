@@ -87,9 +87,7 @@ bool FPCGSortPointsByNearestElement::ExecuteInternal(FPCGContext* Context) const
 	CopyPoints.RemoveAtSwap(Index);
 	
 	SortedPoints.Add(FirstPoint);
-
-	UE_LOG(LogTemp, Error, TEXT("Furtherst Point Index: %d"), Index);
-
+	
 	Recursive_AddNearestPoint(FirstPoint, CopyPoints, SortedPoints);
 
 	UPCGPointData* NewPointData = NewObject<UPCGPointData>();

@@ -138,4 +138,6 @@ public:
 	static FPCGUnionSpatialDataWrapper GetMergeSpatialData(UPARAM(ref) struct FPCGContext& Input);
 
 	static void MergeInputData(struct FPCGContext* Context);
+	static UPCGPointData* MergeData(struct FPCGContext* Context, const TArray<UPCGSpatialData*>& Sources);
+	static UPCGPointData* MergeData(struct FPCGContext* Context, const TArray<UPCGPointData*>& Sources);
 };

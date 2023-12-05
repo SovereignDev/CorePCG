@@ -13,7 +13,6 @@ FPCGContext* FCorePCGAsyncElementBase::Initialize(const FPCGDataCollection& Inpu
 	Context->InputData = InputData;
 	Context->SourceComponent = SourceComponent;
 	Context->Node = Node;
-	Context->bHasAsyncExecuted = false;
 
 	return Context;
 }
@@ -22,10 +21,13 @@ bool FCorePCGAsyncElementBase::ExecuteInternal(FPCGContext* Context) const
 {
 	FCorePCGAsyncContext* AsyncContext = static_cast<FCorePCGAsyncContext*>(Context);
 
+	// Cancel the Async Operation if requested
+	if(AsyncContext->IsCanceled()) return true;
+
 	// Can only hit here once FinishExecute() has been called
-	if(AsyncContext->bHasAsyncExecuted)
+	if(AsyncContext->HasAsyncExecutionBegan())
 	{
-		AsyncContext->bHasAsyncExecuted = false;
+		AsyncContext->Reset();
 		return true;
 	}
 
@@ -64,7 +66,6 @@ FPCGContext* FCorePCGPointProcessingAsyncElementBase::Initialize(const FPCGDataC
 	Context->InputData = InputData;
 	Context->SourceComponent = SourceComponent;
 	Context->Node = Node;
-	Context->bHasAsyncExecuted = false;
 
 	return Context;
 }
@@ -74,12 +75,12 @@ bool FCorePCGPointProcessingAsyncElementBase::ExecuteInternal(FPCGContext* Conte
 	FCorePCGAsyncContext* AsyncContext = static_cast<FCorePCGAsyncContext*>(Context);
 
 	// Cancel the Async Operation if requested
-	if(AsyncContext->bCancelAsync) return true;
+	if(AsyncContext->IsCanceled()) return true;
 	
 	// Can only hit here once FinishExecute() has been called
-	if(AsyncContext->bHasAsyncExecuted)
+	if(AsyncContext->HasAsyncExecutionBegan())
 	{
-		AsyncContext->bHasAsyncExecuted = false;
+		AsyncContext->Reset();
 		return true;
 	}
 
@@ -165,7 +166,7 @@ void FCorePCGAsyncIterationElementBase::_Internal_Iteration(FCorePCGAsyncContext
 	if(!Context->SourceComponent.IsValid()) Context->Cancel();
 
 	// If we have been cancelled, then return without doing anything
-	if(Context->bCancelAsync) return;
+	if(Context->IsCanceled()) return;
 	
 	for(int32 Index = CurrentIteration * MaxIterationsPerTick; Index < (CurrentIteration + 1) * MaxIterationsPerTick; ++Index)
 	{
@@ -196,7 +197,7 @@ void FCorePCGAsyncIterationElementBase::_Internal_TickIteration(FCorePCGAsyncCon
 	if(!Context->SourceComponent.IsValid() || !Context->SourceComponent.Get()->GetWorld()) Context->Cancel();
 
 	// If we have been cancelled, then dont begin the next iteration
-	if(Context->bCancelAsync) return;
+	if(Context->IsCanceled()) return;
 	
 	Context->SourceComponent.Get()->GetWorld()->GetTimerManager().SetTimerForNextTick([this, Context, &InPoints, &OutPoints, MaxIterationsPerTick, CurrentIteration, Function, OnFinishedFunction]()
 	{
