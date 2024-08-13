@@ -11,9 +11,7 @@
 
 struct FPCGAsyncTestContext : public FPCGContext
 {
-public:
 	FTimerHandle TimerHandle;
-	
 	bool bIsFinished = false;
 };
 

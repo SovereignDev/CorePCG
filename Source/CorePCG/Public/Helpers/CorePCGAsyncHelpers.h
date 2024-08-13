@@ -32,7 +32,7 @@ public:
 	}
 };
 
-class COREPCG_API FCorePCGAsyncElementBase : public FSimplePCGElement
+class COREPCG_API FCorePCGAsyncElementBase : public IPCGElement
 {
 protected:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
@@ -87,39 +87,6 @@ private:
 
 namespace CorePCGAsyncLoadHelpers
 {
-	/* Wrapper for the Streamable Manager Async Load that will call the delegate immediately if the object is already loaded */
-	template<class T = UObject>
-	static TSharedPtr<struct FStreamableHandle> RequestAsyncLoad(const TSoftObjectPtr<T>& AssetToLoad, const FStreamableDelegate& DelegateToCall = FStreamableDelegate())
-	{
-		if(AssetToLoad.IsNull()) return nullptr;
-
-		if(AssetToLoad.IsValid())
-		{
-			DelegateToCall.ExecuteIfBound();
-			return nullptr;
-		}
-
-		return UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(AssetToLoad.ToSoftObjectPath(), DelegateToCall);
-	}
-
-	// Wrapper for Async Loading a TSoftObjectPtr Array
-	template<class T = UObject>
-	FORCEINLINE static TSharedPtr<struct FStreamableHandle> RequestAsyncLoad(const TArray<TSoftObjectPtr<T>>& AssetsToLoad, const FStreamableDelegate& DelegateToCall = FStreamableDelegate())
-	{
-		if(AssetsToLoad.IsEmpty()) return nullptr;
-	
-		return UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(SoftPointersToPaths<T>(AssetsToLoad), DelegateToCall);
-	}
-
-	// Wrapper for Async Loading a TSoftClassPtr Array
-	template<class T = UObject>
-	FORCEINLINE static TSharedPtr<struct FStreamableHandle> RequestAsyncLoad(const TArray<TSoftClassPtr<T>>& AssetsToLoad, const FStreamableDelegate& DelegateToCall = FStreamableDelegate())
-	{
-		if(AssetsToLoad.IsEmpty()) return nullptr;
-	
-		return UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(SoftPointersToPaths<T>(AssetsToLoad), DelegateToCall);
-	}
-
 	// Converts a TSoftObjectPtr Array to a FSoftObjectPath Array
 	template<typename T = UObject>
 	FORCEINLINE static TArray<FSoftObjectPath> SoftPointersToPaths(const TArray<TSoftObjectPtr<T>>& SoftObjectPtrs)
@@ -153,5 +120,38 @@ namespace CorePCGAsyncLoadHelpers
 	FORCEINLINE static TArray<FSoftObjectPath> SoftPointersToPaths(const TSoftClassPtr<T>& SoftObjectPtrs)
 	{
 		return {SoftObjectPtrs.ToSoftObjectPath()};
+	}
+	
+	/* Wrapper for the Streamable Manager Async Load that will call the delegate immediately if the object is already loaded */
+	template<class T = UObject>
+	static TSharedPtr<struct FStreamableHandle> RequestAsyncLoad(const TSoftObjectPtr<T>& AssetToLoad, const FStreamableDelegate& DelegateToCall = FStreamableDelegate())
+	{
+		if(AssetToLoad.IsNull()) return nullptr;
+
+		if(AssetToLoad.IsValid())
+		{
+			DelegateToCall.ExecuteIfBound();
+			return nullptr;
+		}
+
+		return UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(AssetToLoad.ToSoftObjectPath(), DelegateToCall);
+	}
+
+	// Wrapper for Async Loading a TSoftObjectPtr Array
+	template<class T = UObject>
+	FORCEINLINE static TSharedPtr<struct FStreamableHandle> RequestAsyncLoad(const TArray<TSoftObjectPtr<T>>& AssetsToLoad, const FStreamableDelegate& DelegateToCall = FStreamableDelegate())
+	{
+		if(AssetsToLoad.IsEmpty()) return nullptr;
+	
+		return UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(SoftPointersToPaths<T>(AssetsToLoad), DelegateToCall);
+	}
+
+	// Wrapper for Async Loading a TSoftClassPtr Array
+	template<class T = UObject>
+	FORCEINLINE static TSharedPtr<struct FStreamableHandle> RequestAsyncLoad(const TArray<TSoftClassPtr<T>>& AssetsToLoad, const FStreamableDelegate& DelegateToCall = FStreamableDelegate())
+	{
+		if(AssetsToLoad.IsEmpty()) return nullptr;
+	
+		return UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(SoftPointersToPaths<T>(AssetsToLoad), DelegateToCall);
 	}
 }

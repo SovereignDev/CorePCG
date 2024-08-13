@@ -12,10 +12,14 @@
 
 void AppendPointToMesh(UDynamicMesh* Mesh, const FPCGPoint& Point)
 {
+	if(!Mesh) return;
+	
 	FBox Box = Point.GetLocalBounds();
 
 	// Scale the Box by the Point's Scale
 	Box = Box.ExpandBy(Box.GetExtent() * (Point.Transform.GetScale3D() - FVector::One()));
+
+	if(Box.GetSize().Length() < KINDA_SMALL_NUMBER) return;
 	
 	UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendBoundingBox(Mesh, FGeometryScriptPrimitiveOptions(), Point.Transform, Box);
 }
@@ -46,7 +50,7 @@ bool FPCGPreciseSelfPruneElement::ExecuteInternal(FPCGContext* Context) const
 	UDynamicMesh* FinalMesh = NewObject<UDynamicMesh>();
 	UDynamicMesh* CurrentMesh = NewObject<UDynamicMesh>();
 	
-	ProcessPoints(Context, Inputs, Outputs, [FinalMesh, CurrentMesh](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+	ProcessPoints(Context, Inputs, Outputs, [&FinalMesh, CurrentMesh](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 	{
 		OutPoint = InPoint;
 

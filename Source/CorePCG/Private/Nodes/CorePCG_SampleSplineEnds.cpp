@@ -20,7 +20,7 @@ bool FPCGSampleSplineEndsElement::ExecuteInternal(FPCGContext* Context) const
 
 	if(Inputs.IsEmpty() || !Inputs[0].Data) return true;
 	
-	UPCGPolyLineData* SplineData = Cast<UPCGPolyLineData>(Inputs[0].Data);
+	UPCGPolyLineData* SplineData = const_cast<UPCGPolyLineData*>(Cast<UPCGPolyLineData>(Inputs[0].Data));
 	
 	if(!SplineData)
 	{
@@ -61,4 +61,9 @@ bool FPCGSampleSplineEndsElement::ExecuteInternal(FPCGContext* Context) const
 	Output.Pin = "Out";
 
 	return true;
+}
+
+FText UPCGSampleSplineEndsSettings::GetNodeTooltipText() const
+{
+	return NSLOCTEXT("PCGSampleSplineEndsSettings", "NodeTooltip", "Creates a point for the Start and End of a Spline");
 }

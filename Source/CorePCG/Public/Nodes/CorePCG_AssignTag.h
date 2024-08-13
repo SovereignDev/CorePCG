@@ -11,7 +11,7 @@
  * 
  */
 
-class FPCGAssignTagElement : public FSimplePCGElement
+class FPCGAssignTagElement : public IPCGElement
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

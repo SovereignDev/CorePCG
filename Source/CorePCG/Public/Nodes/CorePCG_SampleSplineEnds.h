@@ -36,7 +36,7 @@ public:
 		return NSLOCTEXT("PCGSampleSplineEndsSettings", "NodeTitle", "Sample Spline Ends");
 	}
 
-	virtual FText GetNodeTooltipText() const override { return NSLOCTEXT("PCGSampleSplineEndsSettings", "NodeTooltip", "Creates a point for the Start and End of a Spline"); }
+	virtual FText GetNodeTooltipText() const override;
 
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Sampler; }
 #endif
@@ -47,7 +47,13 @@ protected:
 		FPCGPinProperties InputPin;
 		InputPin.Label = "Spline";
 		InputPin.AllowedTypes = EPCGDataType::Spline;
+
+#if ENGINE_MINOR_VERSION > 3
+		InputPin.SetAllowMultipleConnections(false);
+#else
 		InputPin.bAllowMultipleConnections = false;
+#endif
+		
 		InputPin.bAllowMultipleData = false;
 
 		return {InputPin};

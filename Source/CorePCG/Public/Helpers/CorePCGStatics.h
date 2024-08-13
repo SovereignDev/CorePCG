@@ -34,17 +34,17 @@ namespace PCG
 	{
 		for (FPCGTaggedData& Data : InData)
 		{
-			UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Data.Data);
+			const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Data.Data);
 			if(SpatialData)
 			{
-				SpatialData->Metadata = MetaData;
+				const_cast<UPCGSpatialData*>(SpatialData)->Metadata = MetaData;
 				continue;
 			}
 
-			UPCGParamData* ParamData = Cast<UPCGParamData>(Data.Data);
+			const UPCGParamData* ParamData = Cast<UPCGParamData>(Data.Data);
 			if(ParamData)
 			{
-				ParamData->Metadata = MetaData;
+				const_cast<UPCGParamData*>(ParamData)->Metadata = MetaData;
 				continue;
 			}
 		}

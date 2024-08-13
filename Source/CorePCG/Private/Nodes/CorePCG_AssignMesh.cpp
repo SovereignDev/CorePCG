@@ -6,6 +6,7 @@
 #include "PCGContext.h"
 #include "PCGPoint.h"
 #include "Data/PCGSpatialData.h"
+#include "Helpers/CorePCGMetadata.h"
 #include "Helpers/CorePCGRandomHelpers.h"
 #include "Helpers/CorePCGStatics.h"
 #include "Helpers/PCGHelpers.h"
@@ -94,7 +95,7 @@ bool FPCGAssignMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context) 
 	
 	int32 Seed = Context->GetSeed();
 
-	UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Inputs[0].Data);
+	UPCGSpatialData* SpatialData = const_cast<UPCGSpatialData*>(Cast<UPCGSpatialData>(Inputs[0].Data));
 	if(!SpatialData) return false;
 
 	UPCGMetadata* Metadata = SpatialData->MutableMetadata();
@@ -115,7 +116,7 @@ bool FPCGAssignMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context) 
 		
 		MeshesToLoad.AddUnique(ChosenMesh.Mesh);
 			
-		UPCGMetadataAccessorHelpers::SetStringAttribute(OutPoint, Metadata, FName("Mesh"), ChosenMesh.Mesh.ToSoftObjectPath().GetAssetPathString());
+		CorePCGMetaData::SetAttribute(OutPoint, Metadata, FName("Mesh"), ChosenMesh.Mesh.ToSoftObjectPath().GetAssetPathString());
 		
 		if(bSetBounds)
 		{
@@ -126,7 +127,7 @@ bool FPCGAssignMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context) 
 		return true;
 	});
 
-	for (FPCGTaggedData& Output : Outputs) Cast<UPCGSpatialData>(Output.Data)->Metadata = Metadata;
+	for (FPCGTaggedData& Output : Outputs) const_cast<UPCGSpatialData*>(Cast<UPCGSpatialData>(Output.Data))->Metadata = Metadata;
 	
 	// Before Returning, Load all the Chosen Meshes Asyncronously.
 	CorePCGAsyncLoadHelpers::RequestAsyncLoad(MeshesToLoad, FStreamableDelegate::CreateLambda([Context]

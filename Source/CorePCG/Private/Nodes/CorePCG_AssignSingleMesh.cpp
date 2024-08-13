@@ -8,8 +8,9 @@
 #include "PCGPoint.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/CorePCGStatics.h"
-#include "Helpers/PCGHelpers.h"
+#include "Helpers/CorePCGMetadata.h"
 #include "Metadata/PCGMetadataAccessor.h"
+
 
 UPCGAssignSingleMeshSettings::UPCGAssignSingleMeshSettings()
 {
@@ -53,7 +54,7 @@ bool FPCGAssignSingleMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Con
 			return;
 		}
 		
-		UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Inputs[0].Data);
+		UPCGSpatialData* SpatialData = const_cast<UPCGSpatialData*>(Cast<UPCGSpatialData>(Inputs[0].Data));
 		if(!SpatialData)
 		{
 			FinishExecute(Context);
@@ -67,8 +68,8 @@ bool FPCGAssignSingleMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Con
 		// Process Points after Async Load because we need to gather the Meshes Bounds.
 		PCG::ProcessPointsSynchronous(Context, Inputs, Outputs, [Mesh, &bSetBounds, &BoundsScale, Metadata](FPCGPoint& Point)
 		{
-			UPCGMetadataAccessorHelpers::SetStringAttribute(Point, Metadata, FName("Mesh"), Mesh.ToSoftObjectPath().GetAssetPathString());
-	
+			CorePCGMetaData::SetAttribute(Point, Metadata, FName("Mesh"), Mesh.ToSoftObjectPath().GetAssetPathString());
+
 			if(bSetBounds)
 			{
 				Point.BoundsMin = Mesh.LoadSynchronous()->GetBounds().GetBox().Min * BoundsScale;
@@ -78,7 +79,7 @@ bool FPCGAssignSingleMeshElement::AsyncExecuteInternal(FCorePCGAsyncContext* Con
 			return true;
 		});
 
-		for (FPCGTaggedData& Output : Outputs) Cast<UPCGSpatialData>(Output.Data)->Metadata = Metadata;
+		for (FPCGTaggedData& Output : Outputs) const_cast<UPCGSpatialData*>(Cast<UPCGSpatialData>(Output.Data))->Metadata = Metadata;
 		
 		// Finish the Async Execute so the Graph can continue.
 		FinishExecute(Context);

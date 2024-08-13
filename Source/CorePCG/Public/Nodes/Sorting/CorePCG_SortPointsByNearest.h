@@ -10,7 +10,7 @@
 /**
  * 
  */
-class FPCGSortPointsByNearestElement : public FSimplePCGElement
+class FPCGSortPointsByNearestElement : public IPCGElement
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

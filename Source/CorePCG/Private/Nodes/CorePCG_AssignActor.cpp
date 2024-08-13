@@ -7,10 +7,11 @@
 #include "PCGModule.h"
 #include "Data/PCGSpatialData.h"
 #include "Engine/AssetManager.h"
+#include "Helpers/CorePCGMetadata.h"
 #include "Helpers/CorePCGRandomHelpers.h"
 #include "Helpers/PCGHelpers.h"
 #include "Metadata/PCGMetadataAccessor.h"
-	
+
 bool FPCGAssignActorElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGAssignActorElement::Execute);
@@ -38,13 +39,13 @@ bool FPCGAssignActorElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context)
 
 	int32 Seed = Context->GetSeed();
 
-	UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Inputs[0].Data);
+	const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Inputs[0].Data);
 	if(!SpatialData) return false;
 
 	// Store an Array of the Classes that we want to spawn so we can async load them.
 	TArray<TSoftClassPtr<AActor>> ClassesToLoad;
 	
-	UPCGMetadata* Metadata = SpatialData->MutableMetadata();
+	UPCGMetadata* Metadata = const_cast<UPCGSpatialData*>(SpatialData)->MutableMetadata();
 	
 	if(!Metadata->HasAttribute(FName("ActorClass"))) Metadata->CreateStringAttribute(FName("ActorClass"), "", false, true);
 
@@ -57,8 +58,8 @@ bool FPCGAssignActorElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context)
 		const FWeightedActorToPoint ChosenActor = GET_FROM_WEIGHT_STRUCT_WITH_STREAM(FWeightedActorToPoint, Meshes, RandomStream);
 
 		ClassesToLoad.AddUnique(ChosenActor.Class);
-		
-		UPCGMetadataAccessorHelpers::SetStringAttribute(OutPoint, Metadata, FName("ActorClass"), ChosenActor.Class.ToSoftObjectPath().GetAssetPathString());
+
+		CorePCGMetaData::SetAttribute(OutPoint, Metadata, FName("ActorClass"), ChosenActor.Class.ToSoftObjectPath().GetAssetPathString());
 
 		if(bSetBounds)
 		{
@@ -69,7 +70,7 @@ bool FPCGAssignActorElement::AsyncExecuteInternal(FCorePCGAsyncContext* Context)
 		return true;
 	});
 
-	for (FPCGTaggedData& Output : Outputs) Cast<UPCGSpatialData>(Output.Data)->Metadata = Metadata;
+	for (FPCGTaggedData& Output : Outputs) const_cast<UPCGSpatialData*>(Cast<UPCGSpatialData>(Output.Data))->Metadata = Metadata;
 
 	// Before Returning, Load all the Chosen Meshes Asyncronously.
 	CorePCGAsyncLoadHelpers::RequestAsyncLoad(ClassesToLoad, FStreamableDelegate::CreateLambda([Context]

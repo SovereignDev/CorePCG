@@ -25,7 +25,7 @@ bool FPCGQuantizeFilterElement::AsyncExecuteInternal(FCorePCGAsyncContext* Conte
 	    TArray<FPCGTaggedData> Inputs = Context->InputData.GetInputsByPin(PCGPinConstants::DefaultInputLabel);
 	    TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
-		UPCGSpatialData* InputData = Cast<UPCGSpatialData>(Inputs[0].Data);
+		UPCGSpatialData* InputData = const_cast<UPCGSpatialData*>(Cast<UPCGSpatialData>(Inputs[0].Data));
 		
 		if(!InputData)
 		{

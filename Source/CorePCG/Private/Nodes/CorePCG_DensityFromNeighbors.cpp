@@ -306,3 +306,8 @@ bool FPCGDensityFromNeighborsElement::AsyncExecuteInternal(FCorePCGAsyncContext*
 	
 	return true;
 }
+
+FText UPCGDensityFromNeighborsSettings::GetNodeTooltipText() const
+{
+	return NSLOCTEXT("PCGDensityFromNeighborsSettings", "NodeTooltip", "Calculates the Density of each point based on the normalized number of neighbors within a radius. \n This is perfectly accurate version of the 'DistanceToNeighbors' node but is also much more expensive operation. To avoid performance issues, this node is fully multithreaded and will should not affect performance of the game thread.");
+}
