@@ -37,7 +37,7 @@ namespace CorePCGMetaData
 	{
 		if (!Metadata) return T{};
 
-		PCGMetadataEntryKey& Key = Point.MetadataEntry;
+		PCGMetadataEntryKey Key = Point.MetadataEntry;
 
 		const FPCGMetadataAttributeBase* AttributeBase = Metadata->GetConstAttribute(AttributeName);
 		if (!AttributeBase) return T{};
