@@ -44,9 +44,7 @@ public:
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override
 	{
-		FPCGPinProperties InputPin;
-		InputPin.Label = "Spline";
-		InputPin.AllowedTypes = EPCGDataType::Spline;
+		FPCGPinProperties InputPin = FPCGPinProperties("Spline", EPCGDataType::Spline);
 
 #if ENGINE_MINOR_VERSION > 3
 		InputPin.SetAllowMultipleConnections(false);

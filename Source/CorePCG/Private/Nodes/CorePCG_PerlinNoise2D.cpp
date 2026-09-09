@@ -24,7 +24,13 @@ bool FPCGPerlinNoise2DElement::ExecuteInternal(FPCGContext* Context) const
 	float Frequency = Settings->Frequency * 0.001f;
 	float Power = Settings->Power;
 	
-	int32 Seed = Settings->GetSeed(Context->SourceComponent.Get());
+	int32 Seed;
+	
+	#if ENGINE_MINOR_VERSION > 5
+    		Seed = Settings->GetSeed(Context->ExecutionSource.Get());
+    #else
+    		Seed = Settings->GetSeed(Context->SourceComponent.Get());
+    #endif
 
 	ProcessPoints(Context, Inputs, Outputs,[&Scale, &Frequency, &Power, &Seed](const FPCGPoint& InPoint, FPCGPoint& OutPoint)->bool
 	{
